@@ -28,27 +28,27 @@ parser.add_argument('--two_phase', action='store_true')
 
 args = parser.parse_args()
 model = {
-    'CNN3': models.CNN3,
-    'LSTM': models.LSTM,
-    'BiLSTM': models.BiLSTM,
-    'ContextAware': models.ContextAware,
-    'BertEvi':models.BertEvi,
-    'BertEviOld':models.BertEviOld,
-    'XLNetEVI':models.XLNetEVI,
-    'BertGcn':models.BertGcn,
-    'BertMTL':models.BertMTL,
+    # 'CNN3': models.CNN3,
+    # 'LSTM': models.LSTM,
+    # 'BiLSTM': models.BiLSTM,
+    # 'ContextAware': models.ContextAware,
+    # 'BertEvi':models.BertEvi,
+    # 'BertEviOld':models.BertEviOld,
+    # 'XLNetEVI':models.XLNetEVI,
+    # 'BertGcn':models.BertGcn,
+    # 'BertMTL':models.BertMTL,
     'BertMTL1':models.BertMTL1
     # 'LSTM_SP': models.LSTM_SP
 }
 
 configs = {
-    'ConfigXLNetEVI':config.ConfigXLNetEVI,
-    'ConfigBertEvi':config.ConfigBertEvi,
-    'ConfigBertEviOld':config.ConfigBertEviOld,
-    'ConfigBertGcn':config.ConfigBertGcn,
-    'ConfigBertMTL':config.ConfigBertMTL,
+    # 'ConfigXLNetEVI':config.ConfigXLNetEVI,
+    # 'ConfigBertEvi':config.ConfigBertEvi,
+    # 'ConfigBertEviOld':config.ConfigBertEviOld,
+    # 'ConfigBertGcn':config.ConfigBertGcn,
+    # 'ConfigBertMTL':config.ConfigBertMTL,
     'ConfigBertMTL1':config.ConfigBertMTL1,
-    'ConfigBiLSTM':config.ConfigBiLSTM
+    # 'ConfigBiLSTM':config.ConfigBiLSTM
 }
 
 con = configs['Config'+args.model_name](args)
