@@ -43,8 +43,8 @@ configs = {
     # 'ConfigBertEviOld':config.ConfigBertEviOld,
     # 'ConfigBertGcn':config.ConfigBertGcn,
     # 'ConfigBertMTL':config.ConfigBertMTL,
-    'ConfigBertMTL1':config.ConfigBertMTL1,
-    # 'ConfigBiLSTM':config.ConfigBiLSTM
+    # 'ConfigBiLSTM':config.ConfigBiLSTM,
+    'ConfigBertMTL1':config.ConfigBertMTL1
 }
 
 con = configs['Config'+args.model_name](args)
