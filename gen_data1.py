@@ -43,7 +43,7 @@ unk_number = 0
 
 word_index_file_name = os.path.join(out_path,'vocab.pkl')
 
-def GetNodePosition(data, node_position, node_position_sent, node_sent_num, entity_position, Ls):
+def GetNodePosition(data, node_position, node_position_sent, node_sent_num, entity_position, Ls, node_sent_index):
 
     """
     :param data: input
@@ -52,6 +52,7 @@ def GetNodePosition(data, node_position, node_position_sent, node_sent_num, enti
     :param node_sent_num: number of nodes in each sentence
     :param entity_position:
     :param Ls: the start position of each sentence in document
+    :param node_sent_index: sentence index of a node
     :return:
     """
     nodes = [[] for _ in range(len(data['sents']))]
@@ -81,6 +82,7 @@ def GetNodePosition(data, node_position, node_position_sent, node_sent_num, enti
     for ns in nodes:
         for n in ns:
             node_position[n[0]][n[3]:n[4]] = 1
+            node_sent_index[n[0]][n[1]] = 1
 
     # generate entities(nodes) mask for sentences in a document
     for sent_no, ns in enumerate(nodes_sent):
@@ -106,11 +108,12 @@ def GetNodePosition(data, node_position, node_position_sent, node_sent_num, enti
 
     return  total_mentions #only mentions
 
-def ExtractMDPNode(data, sdp_pos, sdp_num, Ls):
+def ExtractMDPNode(data, sdp_pos, sdp_num, Ls, sdp_sent_index):
     """
     Extract MDP node for each document
     :param data:
     :param sdp_pos: sdp here indicates shortest dependency path:
+    :param sdp_sent_index: sentence index of a sdp node
     :return:
     """
     sents = data["sents"]
@@ -177,12 +180,14 @@ def ExtractMDPNode(data, sdp_pos, sdp_num, Ls):
             sdp_lists[i][j] = sdp + Ls[i]
 
     flat_sdp = [sdp for sub_sdp in sdp_lists for sdp in sub_sdp]
+    flat_sdp_sent = [s_id for s_id, sub_sdp in enumerate(sdp_lists) for _ in sub_sdp]
 
     # set the sdp poistion as 1. for example, if the sdp_pos size is 100 X 512, then we will set the value in each row as 1 according to flat_sdp[i]
     for i in range(len(flat_sdp)):
         if i > MAX_ENTITY_NUM-1:
             continue
         sdp_pos[i][flat_sdp[i]] = 1
+        sdp_sent_index[i][flat_sdp_sent[i]] = 1
 
     sdp_num[0] = len(flat_sdp)
 
@@ -199,11 +204,16 @@ def Init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
     node_position = np.zeros((sen_tot, MAX_NODE_NUM, max_length), dtype = np.int16)
     node_position_sent = np.zeros((sen_tot, MAX_SENT_NUM, MAX_NODE_PER_SENT, MAX_SENT_LEN), dtype = np.int16)
     node_sent_num = np.zeros((sen_tot, MAX_SENT_NUM), dtype = np.int16)
+    ### my
+    node_sent_index = np.zeros((sen_tot, MAX_NODE_NUM, MAX_SENT_NUM), dtype = np.int16)
+
     entity_position = np.zeros((sen_tot, MAX_ENTITY_NUM, max_length), dtype= np.int16)
     node_num = np.zeros((sen_tot, 1), dtype= np.int16)
 
     sdp_position = np.zeros((sen_tot, MAX_ENTITY_NUM, max_length), dtype= np.int16)
     sdp_num = np.zeros((sen_tot, 1),dtype= np.int16)
+    ### my
+    sdp_sent_index = np.zeros((sen_tot, MAX_ENTITY_NUM, MAX_SENT_NUM), dtype=np.int16)
 
     for i in range(len(ori_data)):
         if i % 200 == 0:
@@ -214,9 +224,9 @@ def Init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
             L += len(x)
             Ls.append(L)
 
-        node_num[i] = GetNodePosition(ori_data[i], node_position[i], node_position_sent[i], node_sent_num[i], entity_position[i], Ls)
+        node_num[i] = GetNodePosition(ori_data[i], node_position[i], node_position_sent[i], node_sent_num[i], entity_position[i], Ls, node_sent_index[i])
 
-        ExtractMDPNode(ori_data[i], sdp_position[i], sdp_num[i], Ls)
+        ExtractMDPNode(ori_data[i], sdp_position[i], sdp_num[i], Ls, sdp_sent_index[i])
 
         vertexSet =  ori_data[i]['vertexSet']
         # point position added with sent start position
@@ -378,6 +388,9 @@ def Init(data_file_name, rel2id, max_length = 512, is_training = True, suffix=''
     np.save(os.path.join(out_path, name_prefix + suffix + '_sdp_position.npy'), sdp_position)
     np.save(os.path.join(out_path, name_prefix + suffix + '_sdp_num.npy'), sdp_num)
     np.save(os.path.join(out_path, name_prefix + suffix + '_node_sent_num.npy'), node_sent_num)
+    np.save(os.path.join(out_path, name_prefix + suffix + '_node_sent_index.npy'), node_sent_index)
+    np.save(os.path.join(out_path, name_prefix + suffix + '_sdp_sent_index.npy'), sdp_sent_index)
+
 
     print("unk number for {} is: {}".format(suffix, len(unkown_words)))
     print("Finish saving")
